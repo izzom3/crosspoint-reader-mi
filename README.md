@@ -44,6 +44,7 @@ This project is **not affiliated with Xteink**; it's built as a community projec
 - [x] Image support within EPUB
 - [x] Saved reading position
 - [x] Reading stats (time read per book, estimated time remaining) *(fork addition)*
+- [x] Dictionary lookup *(fork addition)*
 - [x] File explorer with file picker
   - [x] Basic EPUB picker from root directory
   - [x] Support nested folders

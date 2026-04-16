@@ -298,3 +298,8 @@ STR_READING_STATS: "Reading Stats"
 STR_STATS_READ_SUFFIX: "read"
 STR_STATS_LEFT_SUFFIX: "left"
 STR_STATS_NO_DATA: "No data"
+
+STR_DICTIONARY_LOOKUP: "Dictionary Lookup"
+STR_DICT_NOT_FOUND: "Word not found"
+STR_DICT_NO_FILE: "Dictionary not installed. Copy dictionary.idx and dictionary.dat to your SD card."
+STR_LOOK_UP: "Look Up"

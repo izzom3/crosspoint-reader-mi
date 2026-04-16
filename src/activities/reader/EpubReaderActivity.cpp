@@ -12,6 +12,8 @@
 
 #include "CrossPointSettings.h"
 #include "CrossPointState.h"
+#include "DictionaryLookupActivity.h"
+#include "DictionaryStore.h"
 #include "EpubReaderChapterSelectionActivity.h"
 #include "ReadingStatsStore.h"
 #include "EpubReaderFootnotesActivity.h"
@@ -418,7 +420,28 @@ void EpubReaderActivity::onReaderMenuConfirm(EpubReaderMenuActivity::MenuAction 
       }
       break;
     }
+    case EpubReaderMenuActivity::MenuAction::DICTIONARY_LOOKUP: {
+      if (!section) break;
+      auto page = section->loadPageFromSectionFile();
+      if (!page) break;
+      int mt, mr, mb, ml;
+      getOrientedMargins(mt, mr, mb, ml);
+      startActivityForResult(
+          std::make_unique<DictionaryLookupActivity>(renderer, mappedInput, std::move(page),
+                                                     SETTINGS.getReaderFontId(), ml, mt),
+          [this](const ActivityResult&) { requestUpdate(); });
+      break;
+    }
   }
+}
+
+void EpubReaderActivity::getOrientedMargins(int& top, int& right, int& bottom, int& left) const {
+  renderer.getOrientedViewableTRBL(&top, &right, &bottom, &left);
+  top += SETTINGS.screenMargin;
+  left += SETTINGS.screenMargin;
+  right += SETTINGS.screenMargin;
+  const uint8_t statusBarHeight = UITheme::getInstance().getStatusBarHeight();
+  bottom += std::max(SETTINGS.screenMargin, statusBarHeight);
 }
 
 void EpubReaderActivity::applyOrientation(const uint8_t orientation) {
