@@ -1,0 +1,5 @@
+# Git LFS tracking for large dictionary binary files
+dictionary.idx filter=lfs diff=lfs merge=lfs -text
+dictionary.dat filter=lfs diff=lfs merge=lfs -text
+dictionary.idx !text !filter !merge !diff
+dictionary.dat !text !filter !merge !diff

@@ -1,4 +1,6 @@
-# CrossPoint Reader
+# CrossPoint Reader — Matt's Fork
+
+This is a personal fork of [CrossPoint Reader](https://github.com/crosspoint-reader/crosspoint-reader) by Matt Izzo ([@izzom3](https://github.com/izzom3)), adding features beyond the upstream project.
 
 Firmware for the **Xteink X4** e-paper display reader (unaffiliated with Xteink).
 Built using **PlatformIO** and targeting the **ESP32-C3** microcontroller.
@@ -7,6 +9,19 @@ CrossPoint Reader is a purpose-built firmware designed to be a drop-in, fully op
 Xteink firmware. It aims to match or improve upon the standard EPUB reading experience.
 
 ![](./docs/images/cover.jpg)
+
+## Fork Additions
+
+Features added in this fork on top of upstream CrossPoint:
+
+### Reading Stats
+Track how long you've spent reading each book and see an estimated time remaining — without requiring a real-time clock.
+
+- **Home screen cover cards** — Progress bar and a stats line (`45% · 2h 15m read · 3h 30m left`) displayed on each book card.
+- **Reader options menu** — Reading time and estimated time left appended to the existing progress line while reading.
+- **Reading Stats screen** — Accessible from the home menu. Shows total reading time across all books, a scrollable per-book list, and a detail view for each title.
+
+Time is tracked via `millis()` per-session accumulation and written to `stats.bin` in each book's cache directory on exit. No battery-draining RTC required.
 
 ## Motivation
 
@@ -28,6 +43,8 @@ This project is **not affiliated with Xteink**; it's built as a community projec
 - [x] EPUB parsing and rendering (EPUB 2 and EPUB 3)
 - [x] Image support within EPUB
 - [x] Saved reading position
+- [x] Reading stats (time read per book, estimated time remaining) *(fork addition)*
+- [x] Dictionary lookup *(fork addition)*
 - [x] File explorer with file picker
   - [x] Basic EPUB picker from root directory
   - [x] Support nested folders
@@ -153,6 +170,7 @@ cache. This cache directory exists at `.crosspoint` on the SD card. The structur
 .crosspoint/
 ├── epub_12471232/       # Each EPUB is cached to a subdirectory named `epub_<hash>`
 │   ├── progress.bin     # Stores reading progress (chapter, page, etc.)
+│   ├── stats.bin        # Reading stats (total seconds read, last progress %) [fork addition]
 │   ├── cover.bmp        # Book cover image (once generated)
 │   ├── book.bin         # Book metadata (title, author, spine, table of contents, etc.)
 │   └── sections/        # All chapter data is stored in the sections subdirectory

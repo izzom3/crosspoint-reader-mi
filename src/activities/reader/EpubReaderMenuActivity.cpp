@@ -4,20 +4,22 @@
 #include <I18n.h>
 
 #include "MappedInputManager.h"
+#include "ReadingStatsStore.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
 
 EpubReaderMenuActivity::EpubReaderMenuActivity(GfxRenderer& renderer, MappedInputManager& mappedInput,
                                                const std::string& title, const int currentPage, const int totalPages,
                                                const int bookProgressPercent, const uint8_t currentOrientation,
-                                               const bool hasFootnotes)
+                                               const bool hasFootnotes, const uint32_t totalSecondsRead)
     : Activity("EpubReaderMenu", renderer, mappedInput),
       menuItems(buildMenuItems(hasFootnotes)),
       title(title),
       pendingOrientation(currentOrientation),
       currentPage(currentPage),
       totalPages(totalPages),
-      bookProgressPercent(bookProgressPercent) {}
+      bookProgressPercent(bookProgressPercent),
+      totalSecondsRead(totalSecondsRead) {}
 
 std::vector<EpubReaderMenuActivity::MenuItem> EpubReaderMenuActivity::buildMenuItems(bool hasFootnotes) {
   std::vector<MenuItem> items;
@@ -34,6 +36,7 @@ std::vector<EpubReaderMenuActivity::MenuItem> EpubReaderMenuActivity::buildMenuI
   items.push_back({MenuAction::GO_HOME, StrId::STR_GO_HOME_BUTTON});
   items.push_back({MenuAction::SYNC, StrId::STR_SYNC_PROGRESS});
   items.push_back({MenuAction::DELETE_CACHE, StrId::STR_DELETE_CACHE});
+  items.push_back({MenuAction::DICTIONARY_LOOKUP, StrId::STR_DICTIONARY_LOOKUP});
   return items;
 }
 
@@ -110,17 +113,46 @@ void EpubReaderMenuActivity::render(RenderLock&&) {
       contentX + (contentWidth - renderer.getTextWidth(UI_12_FONT_ID, truncTitle.c_str(), EpdFontFamily::BOLD)) / 2;
   renderer.drawText(UI_12_FONT_ID, titleX, 15 + contentY, truncTitle.c_str(), true, EpdFontFamily::BOLD);
 
-  // Progress summary
-  std::string progressLine;
+  // Progress summary — two lines when reading time is available, one line otherwise.
+  // Splitting prevents the combined string from overflowing the content width in portrait.
+  //   Line 1: chapter position + book percentage  (always short)
+  //   Line 2: time read  +  estimated time left   (only when stats exist)
+  std::string posLine;
   if (totalPages > 0) {
-    progressLine = std::string(tr(STR_CHAPTER_PREFIX)) + std::to_string(currentPage) + "/" +
-                   std::to_string(totalPages) + std::string(tr(STR_PAGES_SEPARATOR));
+    posLine = std::string(tr(STR_CHAPTER_PREFIX)) + std::to_string(currentPage) + "/" +
+              std::to_string(totalPages) + std::string(tr(STR_PAGES_SEPARATOR));
   }
-  progressLine += std::string(tr(STR_BOOK_PREFIX)) + std::to_string(bookProgressPercent) + "%";
-  renderer.drawCenteredText(UI_10_FONT_ID, 45, progressLine.c_str());
+  posLine += std::string(tr(STR_BOOK_PREFIX)) + std::to_string(bookProgressPercent) + "%";
+
+  std::string timeLine;
+  if (totalSecondsRead > 0) {
+    const std::string timeRead = ReadingStatsStore::formatTime(totalSecondsRead);
+    timeLine = timeRead + " " + std::string(tr(STR_STATS_READ_SUFFIX));
+    const uint32_t secsLeft = ReadingStatsStore::estimateSecondsLeft(
+        totalSecondsRead, static_cast<uint8_t>(bookProgressPercent > 100 ? 100 : bookProgressPercent));
+    if (secsLeft >= 60) {
+      const std::string timeLeft = ReadingStatsStore::formatTime(secsLeft);
+      timeLine += std::string("  |  ") + timeLeft + " " + std::string(tr(STR_STATS_LEFT_SUFFIX));
+    }
+  }
+
+  const int progLineH = renderer.getLineHeight(UI_10_FONT_ID);
+  const int progressBaseY = 43 + contentY;
+
+  // Center each line within the content column (same approach as the title above)
+  const int posX = contentX + (contentWidth - renderer.getTextWidth(UI_10_FONT_ID, posLine.c_str())) / 2;
+  renderer.drawText(UI_10_FONT_ID, posX, progressBaseY, posLine.c_str(), true);
+
+  if (!timeLine.empty()) {
+    const int timeX = contentX + (contentWidth - renderer.getTextWidth(UI_10_FONT_ID, timeLine.c_str())) / 2;
+    renderer.drawText(UI_10_FONT_ID, timeX, progressBaseY + progLineH, timeLine.c_str(), true);
+  }
+
+  // Shift menu items down to make room for the extra line when time stats are shown
+  const int extraOffset = timeLine.empty() ? 0 : progLineH;
 
   // Menu Items
-  const int startY = 75 + contentY;
+  const int startY = 75 + contentY + extraOffset;
   constexpr int lineHeight = 30;
 
   for (size_t i = 0; i < menuItems.size(); ++i) {

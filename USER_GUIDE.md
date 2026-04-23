@@ -23,6 +23,7 @@ Welcome to the **CrossPoint** firmware. This guide outlines the hardware control
       - [3.6.5 OPDS Servers (Multiple Libraries)](#365-opds-servers-multiple-libraries)
       - [3.6.6 KOReader Sync Quick Setup](#366-koreader-sync-quick-setup)
     - [3.7 Sleep Screen](#37-sleep-screen)
+    - [3.8 Dictionary Lookup](#38-dictionary-lookup)
   - [4. Reading Mode](#4-reading-mode)
     - [Page Turning](#page-turning)
     - [Chapter Navigation](#chapter-navigation)
@@ -362,6 +363,46 @@ To use custom sleep images, set the sleep screen mode to **Custom** or **Cover +
 > - Use uncompressed BMP files with 24-bit color depth
 > - X4: Use a resolution of 480x800 pixels to match the device's screen resolution.
 > - X3: Use a resolution of 528x792 pixels to match the device's screen resolution.
+
+---
+
+### 3.8 Dictionary Lookup
+
+Look up any word on the current page without leaving the book.
+
+#### Setup (one-time)
+
+The dictionary requires two binary data files on your SD card. These are pre-built and included in the repository:
+
+1. Copy `dictionary.idx` and `dictionary.dat` from the root of this repository to the **root of your SD card**.
+2. That's it — no other configuration needed.
+
+> [!NOTE]
+> If you need to rebuild the files from a different dictionary source, run:
+> ```sh
+> python scripts/build_dictionary.py path/to/your/dictionary.csv
+> ```
+> This generates fresh `dictionary.idx` and `dictionary.dat` files in the repo root.
+
+#### Using Dictionary Lookup
+
+1. While reading, press **Confirm** to open the reader options menu.
+2. Select **Dictionary Lookup**. The page re-displays with the first word highlighted.
+3. Navigate to the word you want:
+
+   | Action | Button |
+   |--------|--------|
+   | **Next word** | Right |
+   | **Previous word** | Left |
+   | **Next line** | Volume Down |
+   | **Previous line** | Volume Up |
+
+4. Press **Confirm** to look up the highlighted word. The definition is shown on a new screen.
+5. Press **Back** from the definition view to return to word selection.
+6. Press **Back** from word selection to return to reading.
+
+> [!TIP]
+> The lookup strips punctuation automatically — highlighting `"word,"` looks up `word`.
 
 ---
 
