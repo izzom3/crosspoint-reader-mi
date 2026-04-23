@@ -14,7 +14,7 @@ for size in ${NOTOSERIF_FONT_SIZES[@]}; do
     font_name="notoserif_${size}_$(echo $style | tr '[:upper:]' '[:lower:]')"
     font_path="../builtinFonts/source/NotoSerif/NotoSerif-${style}.ttf"
     output_path="../builtinFonts/${font_name}.h"
-    python fontconvert.py $font_name $size $font_path --2bit --compress --pnum > $output_path
+    python3 fontconvert.py $font_name $size $font_path --2bit --compress --pnum > $output_path
     echo "Generated $output_path"
   done
 done
@@ -24,7 +24,7 @@ for size in ${NOTOSANS_FONT_SIZES[@]}; do
     font_name="notosans_${size}_$(echo $style | tr '[:upper:]' '[:lower:]')"
     font_path="../builtinFonts/source/NotoSans/NotoSans-${style}.ttf"
     output_path="../builtinFonts/${font_name}.h"
-    python fontconvert.py $font_name $size $font_path --2bit --compress --pnum > $output_path
+    python3 fontconvert.py $font_name $size $font_path --2bit --compress --pnum > $output_path
     echo "Generated $output_path"
   done
 done
@@ -34,7 +34,7 @@ for size in ${OPENDYSLEXIC_FONT_SIZES[@]}; do
     font_name="opendyslexic_${size}_$(echo $style | tr '[:upper:]' '[:lower:]')"
     font_path="../builtinFonts/source/OpenDyslexic/OpenDyslexic-${style}.otf"
     output_path="../builtinFonts/${font_name}.h"
-    python fontconvert.py $font_name $size $font_path --2bit --compress > $output_path
+    python3 fontconvert.py $font_name $size $font_path --2bit --compress > $output_path
     echo "Generated $output_path"
   done
 done
@@ -47,13 +47,25 @@ for size in ${UI_FONT_SIZES[@]}; do
     font_name="ubuntu_${size}_$(echo $style | tr '[:upper:]' '[:lower:]')"
     font_path="../builtinFonts/source/Ubuntu/Ubuntu-${style}.ttf"
     output_path="../builtinFonts/${font_name}.h"
-    python fontconvert.py $font_name $size $font_path > $output_path
+    python3 fontconvert.py $font_name $size $font_path > $output_path
     echo "Generated $output_path"
   done
 done
 
-python fontconvert.py notosans_8_regular 8 ../builtinFonts/source/NotoSans/NotoSans-Regular.ttf > ../builtinFonts/notosans_8_regular.h
+LITERATA_FONT_SIZES=(12 14 16 18)
+
+for size in ${LITERATA_FONT_SIZES[@]}; do
+  for style in ${READER_FONT_STYLES[@]}; do
+    font_name="literata_${size}_$(echo $style | tr '[:upper:]' '[:lower:]')"
+    font_path="../builtinFonts/source/Literata/Literata-${style}.ttf"
+    output_path="../builtinFonts/${font_name}.h"
+    python3 fontconvert.py $font_name $size $font_path --2bit --compress --pnum > $output_path
+    echo "Generated $output_path"
+  done
+done
+
+python3 fontconvert.py notosans_8_regular 8 ../builtinFonts/source/NotoSans/NotoSans-Regular.ttf > ../builtinFonts/notosans_8_regular.h
 
 echo ""
 echo "Running compression verification..."
-python verify_compression.py ../builtinFonts/
+python3 verify_compression.py ../builtinFonts/
