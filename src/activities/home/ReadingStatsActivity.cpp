@@ -202,8 +202,35 @@ void ReadingStatsActivity::renderDetail(const BookStatEntry& entry) {
   const int textX = metrics.contentSidePadding;
   const int maxWidth = pageWidth - metrics.contentSidePadding * 2;
 
-  // Book title (wrapped, up to 3 lines)
-  auto titleLines = renderer.wrappedText(UI_12_FONT_ID, entry.title.c_str(), maxWidth, 3, EpdFontFamily::BOLD);
+  // --- Cover image (centred, max 130px tall) ---
+  constexpr int coverDisplayHeight = 130;
+  if (!entry.coverBmpPath.empty()) {
+    // Use the height at which the thumbnail was actually generated (homeCoverHeight),
+    // but display it scaled down to coverDisplayHeight via drawBitmap's maxHeight param.
+    const int coverThumbHeight = metrics.homeCoverHeight;
+    const std::string coverPath = UITheme::getCoverThumbPath(entry.coverBmpPath, coverThumbHeight);
+    FsFile coverFile;
+    if (Storage.openFileForRead("STATS", coverPath, coverFile)) {
+      Bitmap bitmap(coverFile);
+      if (bitmap.parseHeaders() == BmpReaderError::Ok) {
+        // Compute display width preserving aspect ratio, capped at 40% of content width
+        const int imgW = bitmap.getWidth();
+        const int imgH = bitmap.getHeight();
+        int displayW = (imgW > 0 && imgH > 0)
+                           ? static_cast<int>(coverDisplayHeight * static_cast<float>(imgW) / static_cast<float>(imgH))
+                           : maxWidth * 2 / 5;
+        if (displayW > maxWidth * 2 / 5) displayW = maxWidth * 2 / 5;
+        const int coverX = (pageWidth - displayW) / 2;
+        renderer.drawBitmap(bitmap, coverX, y, displayW, coverDisplayHeight);
+        renderer.drawRect(coverX, y, displayW, coverDisplayHeight);
+        y += coverDisplayHeight + metrics.verticalSpacing;
+      }
+      coverFile.close();
+    }
+  }
+
+  // Book title (wrapped, up to 2 lines)
+  auto titleLines = renderer.wrappedText(UI_12_FONT_ID, entry.title.c_str(), maxWidth, 2, EpdFontFamily::BOLD);
   for (const auto& line : titleLines) {
     renderer.drawText(UI_12_FONT_ID, textX, y, line.c_str(), true, EpdFontFamily::BOLD);
     y += renderer.getLineHeight(UI_12_FONT_ID);
@@ -231,10 +258,11 @@ void ReadingStatsActivity::renderDetail(const BookStatEntry& entry) {
   }
   y += barHeight + metrics.verticalSpacing;
 
-  // Progress percentage
+  // Progress percentage — centred under the bar
   char buf[64];
   snprintf(buf, sizeof(buf), "%d%%", static_cast<int>(entry.lastProgressPercent));
-  renderer.drawText(UI_10_FONT_ID, textX, y, buf, true);
+  const int pctWidth = renderer.getTextWidth(UI_10_FONT_ID, buf);
+  renderer.drawText(UI_10_FONT_ID, textX + (maxWidth - pctWidth) / 2, y, buf, true);
   y += renderer.getLineHeight(UI_10_FONT_ID) + metrics.verticalSpacing;
 
   // Time read
